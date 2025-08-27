@@ -29,18 +29,24 @@ Set OpenAI API key:
 export OPENAI_API_KEY="your-key-here"
 ```
 
+Test the installation:
+```bash
+python -m src.mcp_server
+# Should show: MCP server running on stdio
+```
+
 ## Usage with Cursor
 
-Add to `.cursor/mcp.json`:
+Copy `cursor-mcp-config.json` to your `.cursor/mcp.json` and update the paths:
 ```json
 {
   "mcpServers": {
     "figma-docs": {
       "command": "python",
       "args": ["-m", "src.mcp_server"],
-      "cwd": "/path/to/figma-mcp-server",
+      "cwd": "/absolute/path/to/figma-mcp-server",
       "env": {
-        "OPENAI_API_KEY": "your-key-here"
+        "OPENAI_API_KEY": "your-openai-api-key-here"
       }
     }
   }

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "figma-docs": {
+      "command": "python",
+      "args": ["-m", "src.mcp_server"],
+      "cwd": "/path/to/figma-mcp-server",
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key-here"
+      }
+    }
+  }
+}

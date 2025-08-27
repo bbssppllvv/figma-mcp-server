@@ -21,10 +21,12 @@ if [ ! -f "meta.db" ]; then
     exit 1
 fi
 
-# OpenAI API key is optional but recommended
+# Check OpenAI API key
 if [ -z "$OPENAI_API_KEY" ]; then
-    echo "⚠️  WARNING: OPENAI_API_KEY not set. Semantic search will be disabled." >&2
-    echo "   Set OPENAI_API_KEY for best search quality." >&2
+    echo "❌ ERROR: OPENAI_API_KEY not set!" >&2
+    echo "   Get your API key from: https://platform.openai.com/api-keys" >&2
+    echo "   Then set: export OPENAI_API_KEY='your-key-here'" >&2
+    exit 1
 else
     echo "✅ OPENAI_API_KEY found (length: ${#OPENAI_API_KEY})" >&2
 fi
