@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Unified Search Engine для MCP Figma Documentation
-Объединяет semantic search, API lookup и cross-linking
+Unified Search Engine for MCP Figma Documentation
+Combines semantic search, API lookup and cross-linking
 """
 
 import sqlite3
@@ -15,7 +15,7 @@ try:
     from .preview_generator import create_smart_preview, extract_api_symbols_from_text
     from .cross_linker import CrossLinker
 except ImportError:
-    # Fallback для прямого запуска
+    # Fallback for direct execution
     from preview_generator import create_smart_preview, extract_api_symbols_from_text
     from cross_linker import CrossLinker
 
@@ -29,13 +29,13 @@ class UnifiedSearchEngine:
         self.cross_linker = CrossLinker(db_path)
         
     def get_db_connection(self):
-        """Получение подключения к БД"""
+        """Get database connection"""
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         return conn
     
     async def get_embedding(self, text: str, model: str = "text-embedding-3-small") -> Optional[np.ndarray]:
-        """Получение эмбеддинга"""
+        """Get embedding"""
         if not self.openai_client:
             return None
         
@@ -47,7 +47,7 @@ class UnifiedSearchEngine:
             return None
     
     def cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
-        """Косинусное сходство"""
+        """Cosine similarity"""
         try:
             norm_a = np.linalg.norm(a)
             norm_b = np.linalg.norm(b)
@@ -59,8 +59,8 @@ class UnifiedSearchEngine:
             return 0.0
     
     def extract_api_symbols_from_query(self, query: str) -> List[str]:
-        """Извлекает API символы из запроса"""
-        # Простые паттерны для определения API символов в запросе
+        """Extracts API symbols from query"""
+        # Simple patterns for detecting API symbols in query
         api_patterns = [
             r'\bfigma\.[a-zA-Z][a-zA-Z0-9_.]*',
             r'\b[A-Z][a-zA-Z0-9]*Node\b',
@@ -79,7 +79,7 @@ class UnifiedSearchEngine:
     
     async def semantic_search(self, query: str, section: str, top_k: int, 
                             model: str = "text-embedding-3-small") -> List[Dict[str, Any]]:
-        """Семантический поиск"""
+        """Semantic search"""
         query_embedding = await self.get_embedding(query, model)
         if query_embedding is None:
             return []
@@ -127,7 +127,7 @@ class UnifiedSearchEngine:
         
         conn.close()
         
-        # Сортируем по score
+        # Sort by score
         candidates.sort(key=lambda x: x['score'], reverse=True)
         return candidates[:top_k]
     
@@ -371,7 +371,7 @@ class UnifiedSearchEngine:
                 seen_chunks.add(result['chunk_id'])
                 unique_results.append(result)
         
-        # Сортируем по score, но сохраняем разнообразие источников
+        # Sort by score, но сохраняем разнообразие источников
         unique_results.sort(key=lambda x: (x['score'], x.get('api_match', False)), reverse=True)
         
         # Ограничиваем до top_k

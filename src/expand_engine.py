@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Universal Expand Engine для MCP Figma Documentation
-Универсальное разворачивание контента с auto-detection и fallback
+Universal Expand Engine for MCP Figma Documentation
+Universal content expansion with auto-detection and fallback
 """
 
 import sqlite3
@@ -17,23 +17,23 @@ class ExpandEngine:
         self.db_path = db_path
     
     def get_db_connection(self):
-        """Получение подключения к БД"""
+        """Get database connection"""
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         return conn
     
     def detect_id_type(self, id_string: str) -> str:
         """
-        Автоматически определяет тип ID
+        Automatically detects ID type
         
         Returns:
-            'page' или 'chunk'
+            'page' or 'chunk'
         """
         try:
             conn = self.get_db_connection()
             cursor = conn.cursor()
             
-            # Сначала проверяем, есть ли это в таблице pages
+            # First check if this exists in pages table
             cursor.execute("SELECT COUNT(*) FROM pages WHERE id = ?", (id_string,))
             page_count = cursor.fetchone()[0]
             
@@ -41,7 +41,7 @@ class ExpandEngine:
                 conn.close()
                 return 'page'
             
-            # Затем проверяем в таблице chunks
+            # Then check in chunks table
             cursor.execute("SELECT COUNT(*) FROM chunks WHERE chunk_id = ?", (id_string,))
             chunk_count = cursor.fetchone()[0]
             
@@ -50,25 +50,25 @@ class ExpandEngine:
             if chunk_count > 0:
                 return 'chunk'
             else:
-                # Если не найден ни там, ни там, пробуем угадать по формату
-                # UUID обычно используется для chunk_id
+                # If not found in either table, try to guess by format
+                # UUID is usually used for chunk_id
                 try:
                     uuid.UUID(id_string)
-                    return 'chunk'  # Предполагаем chunk
+                    return 'chunk'  # Assume chunk
                 except ValueError:
-                    return 'page'   # Предполагаем page
+                    return 'page'   # Assume page
         
         except Exception as e:
             logger.error(f"Error detecting ID type for {id_string}: {e}")
-            return 'chunk'  # Fallback к chunk
+            return 'chunk'  # Fallback to chunk
     
     def expand_by_page_id(self, page_id: str) -> Optional[Dict[str, Any]]:
-        """Агрегирует все chunks страницы"""
+        """Aggregates all chunks of a page"""
         try:
             conn = self.get_db_connection()
             cursor = conn.cursor()
             
-            # Получаем информацию о странице
+            # Get page information
             cursor.execute("""
                 SELECT id, title, url, section, word_count, source
                 FROM pages 
@@ -80,7 +80,7 @@ class ExpandEngine:
                 conn.close()
                 return None
             
-            # Получаем все чанки страницы, отсортированные по порядку
+            # Get all page chunks, sorted by order
             cursor.execute("""
                 SELECT chunk_id, chunk_index, text, n_tokens, chunk_of
                 FROM chunks 
@@ -94,10 +94,10 @@ class ExpandEngine:
             if not chunks:
                 return None
             
-            # Объединяем все чанки в полный текст
+            # Combine all chunks into full text
             full_text = "\n\n".join([chunk['text'] for chunk in chunks])
             
-            # Подсчитываем статистику
+            # Calculate statistics
             total_tokens = sum(chunk['n_tokens'] for chunk in chunks)
             word_count = len(full_text.split())
             
@@ -132,12 +132,12 @@ class ExpandEngine:
             return None
     
     def expand_by_chunk_id(self, chunk_id: str, context_window: int = 2) -> Optional[Dict[str, Any]]:
-        """Возвращает chunk + контекст"""
+        """Returns chunk + context"""
         try:
             conn = self.get_db_connection()
             cursor = conn.cursor()
             
-            # Получаем информацию о чанке и странице
+            # Get chunk and page information
             cursor.execute("""
                 SELECT c.chunk_id, c.page_id, c.chunk_index, c.chunk_of, c.text, c.n_tokens,
                        p.title, p.url, p.section, p.source
@@ -151,7 +151,7 @@ class ExpandEngine:
                 conn.close()
                 return None
             
-            # Получаем соседние чанки для контекста
+            # Get neighboring chunks for context
             start_index = max(0, chunk_row['chunk_index'] - context_window)
             end_index = min(chunk_row['chunk_of'] - 1, chunk_row['chunk_index'] + context_window)
             
@@ -168,10 +168,10 @@ class ExpandEngine:
             if not context_chunks_data:
                 return None
             
-            # Объединяем контекстные чанки
+            # Combine context chunks
             context_text = "\n\n".join([chunk['text'] for chunk in context_chunks_data])
             
-            # Находим позицию целевого чанка в контексте
+            # Find target chunk position in context
             target_chunk_position = None
             for i, chunk in enumerate(context_chunks_data):
                 if chunk['chunk_id'] == chunk_id:
@@ -216,7 +216,7 @@ class ExpandEngine:
             return None
     
     def create_minimal_response(self, id_string: str, error_msg: str) -> Dict[str, Any]:
-        """Создает минимальный ответ при ошибках"""
+        """Creates minimal response for errors"""
         return {
             "type": "error",
             "id": id_string,
@@ -229,24 +229,24 @@ class ExpandEngine:
     def universal_expand(self, id_string: str, expand_type: str = "auto", 
                         context_window: int = 2) -> Dict[str, Any]:
         """
-        Универсальное разворачивание с автоопределением типа и fallback
+        Universal expansion with auto-detection and fallback
         
         Args:
-            id_string: ID для разворачивания
-            expand_type: Тип разворачивания ('auto', 'page', 'chunk')
-            context_window: Размер контекстного окна для chunk expansion
+            id_string: ID to expand
+            expand_type: Expansion type ('auto', 'page', 'chunk')
+            context_window: Context window size for chunk expansion
             
         Returns:
-            Результат разворачивания с гарантией непустого ответа
+            Expansion result with guaranteed non-empty response
         """
         original_type = expand_type
         
-        # Auto-detect тип ID если не указан
+        # Auto-detect ID type if not specified
         if expand_type == "auto":
             expand_type = self.detect_id_type(id_string)
             logger.info(f"Auto-detected ID type for {id_string}: {expand_type}")
         
-        # Первая попытка
+        # First attempt
         try:
             if expand_type == "page":
                 result = self.expand_by_page_id(id_string)
@@ -269,7 +269,7 @@ class ExpandEngine:
         except Exception as e:
             logger.warning(f"First attempt failed for {id_string} as {expand_type}: {e}")
         
-        # Fallback: пробуем другой тип
+        # Fallback: try other type
         fallback_type = 'chunk' if expand_type == 'page' else 'page'
         logger.info(f"Trying fallback: {id_string} as {fallback_type}")
         
@@ -299,19 +299,19 @@ class ExpandEngine:
         except Exception as e:
             logger.warning(f"Fallback attempt failed for {id_string} as {fallback_type}: {e}")
         
-        # Последний fallback: пытаемся найти хоть что-то в БД
+        # Last fallback: try to find anything in DB
         try:
             conn = self.get_db_connection()
             cursor = conn.cursor()
             
-            # Ищем по частичному совпадению в chunk_id
+            # Search by partial match in chunk_id
             cursor.execute("""
                 SELECT c.chunk_id, c.text, p.title, p.url
                 FROM chunks c
                 JOIN pages p ON p.id = c.page_id
                 WHERE c.chunk_id LIKE '%' || ? || '%'
                 LIMIT 1
-            """, (id_string[:8],))  # Используем первые 8 символов
+            """, (id_string[:8],))  # Use first 8 characters
             
             row = cursor.fetchone()
             if row:
@@ -335,7 +335,7 @@ class ExpandEngine:
         except Exception as e:
             logger.error(f"Even partial match failed for {id_string}: {e}")
         
-        # Абсолютный fallback - возвращаем информативную ошибку
+        # Absolute fallback - return informative error
         return {
             "success": False,
             "error": f"Could not expand ID: {id_string}",
@@ -346,13 +346,13 @@ class ExpandEngine:
         }
     
     def get_navigation_info(self, page_id: str, chunk_id: Optional[str] = None) -> Dict[str, Any]:
-        """Получает навигационную информацию для страницы или чанка"""
+        """Gets navigation information for page or chunk"""
         try:
             conn = self.get_db_connection()
             cursor = conn.cursor()
             
             if chunk_id:
-                # Навигация для конкретного чанка
+                # Navigation for specific chunk
                 cursor.execute("""
                     SELECT chunk_index, chunk_of
                     FROM chunks
@@ -369,7 +369,7 @@ class ExpandEngine:
                         "position": f"{chunk_info['chunk_index'] + 1} of {chunk_info['chunk_of']}"
                     }
             else:
-                # Навигация для страницы
+                # Navigation for page
                 cursor.execute("""
                     SELECT COUNT(*) as total_chunks
                     FROM chunks
@@ -392,23 +392,23 @@ class ExpandEngine:
 
 
 if __name__ == "__main__":
-    # Тестирование
+    # Testing
     import os
     
     db_path = os.getenv("DB_PATH", "data/meta.db")
     engine = ExpandEngine(db_path)
     
-    # Тест автоопределения типа
+    # Test auto-detection of type
     test_ids = [
-        "3bd7f1c3-1f0e-5610-913e-1cff6f6f648c",  # page_id из аудита
-        "db2a544c-03c3-5557-83e1-8b13ed625a3f",  # chunk_id из аудита
+        "3bd7f1c3-1f0e-5610-913e-1cff6f6f648c",  # page_id from audit
+        "db2a544c-03c3-5557-83e1-8b13ed625a3f",  # chunk_id from audit
     ]
     
     for test_id in test_ids:
         detected_type = engine.detect_id_type(test_id)
         print(f"ID: {test_id[:20]}... -> Type: {detected_type}")
         
-        # Тест универсального expand
+        # Test universal expand
         result = engine.universal_expand(test_id, "auto")
         print(f"Expand result: success={result['success']}, method={result.get('method_used', 'none')}")
         if result['success']:

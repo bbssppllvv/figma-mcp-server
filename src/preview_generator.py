@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Smart Preview Generator для MCP Figma Documentation
-Создает умные превью с учетом запроса и контекста
+Smart Preview Generator for MCP Figma Documentation
+Creates smart previews considering query and context
 """
 
 import re
@@ -9,8 +9,8 @@ from typing import List, Optional, Tuple
 
 
 def extract_code_blocks(text: str) -> List[str]:
-    """Извлекает блоки кода из текста"""
-    # Ищем блоки кода в разных форматах
+    """Extracts code blocks from text"""
+    # Find code blocks in different formats
     patterns = [
         r'```[\w]*\n(.*?)\n```',  # Markdown code blocks
         r'`([^`\n]+)`',           # Inline code
@@ -32,39 +32,39 @@ def extract_code_blocks(text: str) -> List[str]:
 
 
 def split_into_sentences(text: str) -> List[str]:
-    """Разбивает текст на предложения"""
-    # Улучшенная логика разбивки на предложения
+    """Splits text into sentences"""
+    # Improved sentence splitting logic
     sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text)
     
-    # Фильтруем слишком короткие предложения
+    # Filter too short sentences
     return [s.strip() for s in sentences if len(s.strip()) > 15]
 
 
 def extract_api_symbols_from_text(text: str) -> List[str]:
-    """Извлекает API символы из текста"""
+    """Extracts API symbols from text"""
     pattern = r'\bfigma\.[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)*'
     return list(set(re.findall(pattern, text, re.IGNORECASE)))
 
 
 def calculate_sentence_relevance_score(sentence: str, query_words: List[str]) -> float:
-    """Вычисляет релевантность предложения к запросу"""
+    """Calculates sentence relevance to query"""
     sentence_lower = sentence.lower()
     score = 0.0
     
-    # Бонус за содержание ключевых слов запроса
+    # Bonus for containing query keywords
     for word in query_words:
         if word in sentence_lower:
             score += 10
-            # Дополнительный бонус если слово в начале предложения
+            # Additional bonus if word is at sentence start
             if sentence_lower.startswith(word):
                 score += 5
     
-    # Бонус за содержание API методов
+    # Bonus for containing API methods
     api_symbols = extract_api_symbols_from_text(sentence)
     if api_symbols:
         score += 8 * len(api_symbols)
     
-    # Бонус за содержание полезных слов
+    # Bonus for containing useful words
     useful_words = [
         'create', 'export', 'load', 'set', 'get', 'add', 'remove', 'update',
         'async', 'await', 'function', 'method', 'property', 'example'
@@ -73,7 +73,7 @@ def calculate_sentence_relevance_score(sentence: str, query_words: List[str]) ->
         if word in sentence_lower:
             score += 2
     
-    # Штраф за технические детали в начале
+    # Penalty for technical details at start
     technical_starts = [
         'set to null', 'supported on:', 'info', 'this api is only', 
         'value must be', 'deprecated', 'warning', 'note:'
@@ -82,11 +82,11 @@ def calculate_sentence_relevance_score(sentence: str, query_words: List[str]) ->
         if sentence_lower.startswith(start):
             score -= 5
     
-    # Штраф за слишком длинные предложения
+    # Penalty for too long sentences
     if len(sentence) > 300:
         score -= 3
     
-    # Бонус за средние предложения (не слишком короткие, не слишком длинные)
+    # Bonus for medium sentences (not too short, not too long)
     if 50 <= len(sentence) <= 200:
         score += 2
     
@@ -94,14 +94,14 @@ def calculate_sentence_relevance_score(sentence: str, query_words: List[str]) ->
 
 
 def format_code_preview(code_block: str, max_length: int) -> str:
-    """Форматирует превью кодового блока"""
-    # Убираем лишние пробелы и переносы
+    """Formats code block preview"""
+    # Remove extra spaces and line breaks
     code_block = re.sub(r'\n\s*\n', '\n', code_block.strip())
     
     if len(code_block) <= max_length:
         return code_block
     
-    # Пытаемся найти хорошую точку обрезки (конец строки)
+    # Try to find good truncation point (end of line)
     lines = code_block.split('\n')
     result_lines = []
     current_length = 0
@@ -119,25 +119,25 @@ def format_code_preview(code_block: str, max_length: int) -> str:
 
 
 def truncate_smart(text: str, max_length: int) -> str:
-    """Умная обрезка текста по словам и предложениям"""
+    """Smart text truncation by words and sentences"""
     if len(text) <= max_length:
         return text
     
     truncated = text[:max_length]
     
-    # Пытаемся найти конец предложения
+    # Try to find end of sentence
     sentence_ends = ['.', '!', '?']
     best_end = -1
     
     for end_char in sentence_ends:
         pos = truncated.rfind(end_char + ' ')
-        if pos > max_length * 0.6:  # Не слишком короткая обрезка
+        if pos > max_length * 0.6:  # Not too short truncation
             best_end = max(best_end, pos + 1)
     
     if best_end > 0:
         return text[:best_end].strip()
     
-    # Обрезаем по словам
+    # Truncate by words
     last_space = truncated.rfind(' ')
     if last_space > max_length * 0.8:
         truncated = truncated[:last_space]
@@ -147,34 +147,34 @@ def truncate_smart(text: str, max_length: int) -> str:
 
 def create_smart_preview(text: str, query: str = "", max_length: int = 250) -> str:
     """
-    Создает умный preview с учетом запроса и контекста
+    Creates smart preview considering query and context
     
     Args:
-        text: Исходный текст
-        query: Поисковый запрос для релевантности
-        max_length: Максимальная длина preview
+        text: Source text
+        query: Search query for relevance
+        max_length: Maximum preview length
     
     Returns:
-        Умный preview текста
+        Smart text preview
     """
-    # Очищаем текст
+    # Clean text
     text = re.sub(r'[\x00-\x1f\x7f-\x9f]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
     
     if len(text) <= max_length:
         return text
     
-    # Извлекаем ключевые слова из запроса
+    # Extract keywords from query
     query_words = [word.lower() for word in query.split() if len(word) > 2]
     
-    # 1. Приоритет: Поиск кодового блока с API методами
+    # 1. Priority: Find code block with API methods
     code_blocks = extract_code_blocks(text)
     for code_block in code_blocks:
         if any(api in code_block.lower() for api in ['figma.', 'async', 'await', 'function']):
             if any(word in code_block.lower() for word in query_words) or not query_words:
                 return format_code_preview(code_block, max_length)
     
-    # 2. Поиск наиболее релевантного предложения
+    # 2. Find most relevant sentence
     sentences = split_into_sentences(text)
     
     if sentences:
@@ -184,7 +184,7 @@ def create_smart_preview(text: str, query: str = "", max_length: int = 250) -> s
         for i, sentence in enumerate(sentences):
             score = calculate_sentence_relevance_score(sentence, query_words)
             
-            # Бонус за позицию (первые предложения важнее)
+            # Bonus for position (first sentences are more important)
             if i == 0:
                 score += 5
             elif i == 1:
@@ -194,44 +194,44 @@ def create_smart_preview(text: str, query: str = "", max_length: int = 250) -> s
                 best_score = score
                 best_sentence = sentence
         
-        # Если нашли хорошее предложение, используем его
+        # If found good sentence, use it
         if best_sentence and best_score > 0:
             return truncate_smart(best_sentence, max_length)
     
-    # 3. Fallback: Ищем абзац с ключевыми словами
+    # 3. Fallback: Find paragraph with keywords
     paragraphs = text.split('\n\n')
     for para in paragraphs:
         para = para.strip()
-        if len(para) < 50:  # Пропускаем заголовки
+        if len(para) < 50:  # Skip headers
             continue
             
         para_lower = para.lower()
         if query_words and any(word in para_lower for word in query_words):
             return truncate_smart(para, max_length)
         
-        # Если есть API методы, тоже хорошо
+        # If has API methods, also good
         if 'figma.' in para_lower:
             return truncate_smart(para, max_length)
     
-    # 4. Последний fallback: начало текста
+    # 4. Last fallback: beginning of text
     return truncate_smart(text, max_length)
 
 
 def create_preview_with_context(text: str, query: str = "", max_length: int = 250, 
                                source_type: str = "unknown") -> dict:
     """
-    Создает расширенный preview с контекстной информацией
+    Creates extended preview with contextual information
     
     Returns:
-        dict с preview, metadata и hints
+        dict with preview, metadata and hints
     """
     preview = create_smart_preview(text, query, max_length)
     
-    # Извлекаем дополнительную информацию
+    # Extract additional information
     api_symbols = extract_api_symbols_from_text(text)
     code_blocks = extract_code_blocks(text)
     
-    # Определяем тип контента
+    # Determine content type
     content_type = "text"
     if code_blocks:
         content_type = "code"
@@ -241,7 +241,7 @@ def create_preview_with_context(text: str, query: str = "", max_length: int = 25
     return {
         "preview": preview,
         "content_type": content_type,
-        "api_symbols": api_symbols[:3],  # Топ 3 API символа
+        "api_symbols": api_symbols[:3],  # Top 3 API symbols
         "has_code": len(code_blocks) > 0,
         "estimated_relevance": _estimate_relevance(text, query),
         "source_type": source_type
@@ -249,14 +249,14 @@ def create_preview_with_context(text: str, query: str = "", max_length: int = 25
 
 
 def _estimate_relevance(text: str, query: str) -> str:
-    """Оценивает релевантность текста к запросу"""
+    """Estimates text relevance to query"""
     if not query:
         return "unknown"
     
     query_words = [word.lower() for word in query.split() if len(word) > 2]
     text_lower = text.lower()
     
-    # Считаем совпадения
+    # Count matches
     matches = sum(1 for word in query_words if word in text_lower)
     api_symbols = len(extract_api_symbols_from_text(text))
     
@@ -270,14 +270,14 @@ def _estimate_relevance(text: str, query: str) -> str:
         return "minimal"
 
 
-# Обратная совместимость
+# Backward compatibility
 def create_preview(text: str, max_length: int = 250) -> str:
-    """Обратная совместимость - вызывает create_smart_preview"""
+    """Backward compatibility - calls create_smart_preview"""
     return create_smart_preview(text, "", max_length)
 
 
 if __name__ == "__main__":
-    # Тестирование
+    # Testing
     test_text = """
     Creating rectangles in Figma plugins is straightforward. 
     You can use the figma.createRectangle() method to create a new rectangle node.

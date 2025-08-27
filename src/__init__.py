@@ -1,7 +1,7 @@
 """
 Figma Documentation MCP Server
 
-Модули для работы с MCP сервером Figma документации.
+Modules for working with Figma documentation MCP server.
 """
 
 __version__ = "1.0.0"

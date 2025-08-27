@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Cross-Linker для MCP Figma Documentation
-Создает связи между official docs и community examples
+Cross-Linker for MCP Figma Documentation
+Creates links between official docs and community examples
 """
 
 import re
@@ -19,12 +19,12 @@ class CrossLinker:
         self._community_usage_cache = {}
     
     def extract_api_symbols_from_content(self, content: str) -> Set[str]:
-        """Извлекает API символы из контента"""
+        """Extracts API symbols from content"""
         if not content:
             return set()
         
-        # Кэшируем результаты для производительности
-        content_hash = hash(content[:500])  # Используем первые 500 символов для хэша
+        # Cache results for performance
+        content_hash = hash(content[:500])  # Use first 500 characters for hash
         if content_hash in self._api_symbol_cache:
             return self._api_symbol_cache[content_hash]
         
@@ -41,10 +41,10 @@ class CrossLinker:
             matches = re.findall(pattern, content, re.IGNORECASE)
             symbols.update(matches)
         
-        # Нормализуем символы
+        # Normalize symbols
         normalized_symbols = set()
         for symbol in symbols:
-            # Убираем дубликаты с разным регистром
+            # Remove duplicates with different case
             normalized = symbol.lower()
             if 'figma.' in normalized:
                 normalized_symbols.add(symbol)
@@ -55,7 +55,7 @@ class CrossLinker:
         return normalized_symbols
     
     def find_community_usage(self, api_symbol: str, limit: int = 3) -> List[Dict[str, Any]]:
-        """Находит примеры использования API символа в community репозиториях"""
+        """Finds API symbol usage examples in community repositories"""
         cache_key = f"{api_symbol}_{limit}"
         if cache_key in self._community_usage_cache:
             return self._community_usage_cache[cache_key]
@@ -65,7 +65,7 @@ class CrossLinker:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            # Создаем варианты поиска для символа
+            # Create search variants for symbol
             search_variants = self._create_search_variants(api_symbol)
             
             examples = []
@@ -83,7 +83,7 @@ class CrossLinker:
                 """, (variant, limit))
                 
                 rows = cursor.fetchall()
-                if rows:  # Если нашли результаты, прекращаем поиск
+                if rows:  # If found results, stop searching
                     for row in rows:
                         examples.append({
                             "chunk_id": row['chunk_id'],
@@ -96,7 +96,7 @@ class CrossLinker:
             
             conn.close()
             
-            # Сортируем по confidence
+            # Sort by confidence
             examples.sort(key=lambda x: x['confidence'], reverse=True)
             result = examples[:limit]
             
@@ -108,13 +108,13 @@ class CrossLinker:
             return []
     
     def find_official_documentation(self, api_symbol: str) -> Optional[Dict[str, Any]]:
-        """Находит официальную документацию для API символа"""
+        """Finds official documentation for API symbol"""
         try:
             conn = sqlite3.connect(self.db_path)
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            # Ищем в официальной документации
+            # Search in official documentation
             search_variants = self._create_search_variants(api_symbol)
             
             for variant in search_variants:
@@ -149,19 +149,19 @@ class CrossLinker:
     
     def add_cross_links(self, results: List[Dict[str, Any]], query: str) -> List[Dict[str, Any]]:
         """
-        Добавляет cross-links между результатами
+        Adds cross-links between results
         
         Args:
-            results: Список результатов поиска
-            query: Исходный поисковый запрос
+            results: List of search results
+            query: Original search query
             
         Returns:
-            Обогащенные результаты с cross-links
+            Enriched results with cross-links
         """
         if not results:
             return results
         
-        # Собираем все API символы из результатов
+        # Collect all API symbols from results
         all_api_symbols = set()
         official_results = []
         community_results = []
@@ -171,13 +171,13 @@ class CrossLinker:
             symbols = self.extract_api_symbols_from_content(content)
             all_api_symbols.update(symbols)
             
-            # Разделяем результаты по типам
+            # Separate results by types
             if result.get('section') == 'plugin' or result.get('source_type') == 'official_docs':
                 official_results.append(result)
             elif result.get('section') == 'community_plugin':
                 community_results.append(result)
         
-        # Добавляем cross-links для official результатов
+        # Add cross-links for official results
         for result in official_results:
             content = result.get('text', result.get('snippet', ''))
             symbols = self.extract_api_symbols_from_content(content)
@@ -188,7 +188,7 @@ class CrossLinker:
                 community_examples.extend(examples)
             
             if community_examples:
-                # Убираем дубликаты и сортируем по confidence
+                # Remove duplicates and sort by confidence
                 unique_examples = {}
                 for ex in community_examples:
                     key = ex['chunk_id']
@@ -204,7 +204,7 @@ class CrossLinker:
                     "examples": sorted_examples
                 }
         
-        # Добавляем cross-links для community результатов
+        # Add cross-links for community results
         for result in community_results:
             content = result.get('text', result.get('snippet', ''))
             symbols = self.extract_api_symbols_from_content(content)
@@ -216,7 +216,7 @@ class CrossLinker:
                     official_docs.append(doc)
             
             if official_docs:
-                # Убираем дубликаты
+                # Remove duplicates
                 unique_docs = {}
                 for doc in official_docs:
                     key = doc['page_id']
@@ -232,23 +232,23 @@ class CrossLinker:
         return results
     
     def _create_search_variants(self, api_symbol: str) -> List[str]:
-        """Создает варианты поиска для API символа"""
+        """Creates search variants for API symbol"""
         variants = [api_symbol]
         
-        # Убираем префикс figma. если есть
+        # Remove figma. prefix if present
         if api_symbol.startswith("figma."):
             clean_symbol = api_symbol[6:]
             variants.append(clean_symbol)
             
-            # Для вложенных API (figma.variables.setValueForMode -> setValueForMode)
+            # For nested API (figma.variables.setValueForMode -> setValueForMode)
             if "." in clean_symbol:
                 method_name = clean_symbol.split(".")[-1]
                 variants.append(method_name)
         
-        # Добавляем case-insensitive варианты
+        # Add case-insensitive variants
         variants.extend([v.lower() for v in variants])
         
-        # Убираем дубликаты, сохраняя порядок
+        # Remove duplicates, preserving order
         seen = set()
         unique_variants = []
         for variant in variants:
@@ -259,15 +259,15 @@ class CrossLinker:
         return unique_variants
     
     def _extract_relevant_snippet(self, text: str, api_symbol: str, max_length: int = 150) -> str:
-        """Извлекает релевантный snippet с API символом"""
+        """Extracts relevant snippet with API symbol"""
         if not text or not api_symbol:
             return text[:max_length] if text else ""
         
-        # Ищем предложение или строку с API символом
+        # Find sentence or line with API symbol
         lines = text.split('\n')
         for line in lines:
             if api_symbol.lower() in line.lower():
-                # Берем эту строку и немного контекста
+                # Take this line and some context
                 line_idx = lines.index(line)
                 start_idx = max(0, line_idx - 1)
                 end_idx = min(len(lines), line_idx + 2)
@@ -284,7 +284,7 @@ class CrossLinker:
         return text[:max_length] + ('...' if len(text) > max_length else '')
     
     def _calculate_usage_confidence(self, text: str, api_symbol: str) -> float:
-        """Вычисляет уверенность в релевантности примера"""
+        """Calculates confidence in example relevance"""
         if not text or not api_symbol:
             return 0.0
         
@@ -293,21 +293,21 @@ class CrossLinker:
         
         confidence = 0.0
         
-        # Базовая уверенность за наличие символа
+        # Base confidence for symbol presence
         if symbol_lower in text_lower:
             confidence += 0.5
         
-        # Бонус за контекст использования
+        # Bonus for usage context
         usage_indicators = ['const', 'let', 'var', '=', 'await', 'async', 'function']
         for indicator in usage_indicators:
             if indicator in text_lower:
                 confidence += 0.1
         
-        # Бонус за примеры кода
+        # Bonus for code examples
         if any(pattern in text for pattern in ['```', 'const ', 'let ', 'function']):
             confidence += 0.2
         
-        # Штраф за слишком короткий или длинный текст
+        # Penalty for too short or too long text
         if len(text) < 50:
             confidence -= 0.2
         elif len(text) > 2000:
@@ -317,13 +317,13 @@ class CrossLinker:
 
 
 if __name__ == "__main__":
-    # Тестирование
+    # Testing
     import os
     
     db_path = os.getenv("DB_PATH", "data/meta.db")
     linker = CrossLinker(db_path)
     
-    # Тест извлечения API символов
+    # Test API symbol extraction
     test_content = """
     const rect = figma.createRectangle()
     rect.resize(100, 100)
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     symbols = linker.extract_api_symbols_from_content(test_content)
     print("API Symbols found:", symbols)
     
-    # Тест поиска community usage
+    # Test community usage search
     if symbols:
         symbol = list(symbols)[0]
         usage = linker.find_community_usage(symbol)

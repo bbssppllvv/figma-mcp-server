@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Figma Documentation MCP Server
-Предоставляет 3 unified tools: mcp_search, mcp_expand, mcp_health
-Транспорт: stdio для интеграции с Cursor
+Provides 3 unified tools: mcp_search, mcp_expand, mcp_health
+Transport: stdio for Cursor integration
 """
 
 import asyncio
@@ -26,7 +26,7 @@ from mcp.types import (
 from pydantic import BaseModel, Field, ValidationError
 import openai
 
-# Настройка логирования
+# Logging setup
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
@@ -34,7 +34,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("figma-mcp")
 
-# Импортируем нормализатор запросов и новые модули
+# Import query normalizer and new modules
 try:
     import sys
     from pathlib import Path
@@ -87,7 +87,7 @@ class UnifiedExpandArgs(BaseModel):
     type: str = Field("auto", description="Expansion type: 'auto', 'page', 'chunk'")
     context_window: int = Field(2, description="Context window for chunk expansion", ge=1, le=5)
 
-# Метрики
+# Metrics
 class Metrics:
     def __init__(self):
         # Только новые unified инструменты
@@ -734,7 +734,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> CallToolResult:
         latency_ms = (time.time() - start_time) * 1000
         bytes_out = len(formatted_text.encode('utf-8'))
         
-        # Метрики
+        # Metrics
         metrics.record_call(name, latency_ms, bytes_out)
         
         # Логирование
