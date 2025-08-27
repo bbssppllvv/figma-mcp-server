@@ -24,7 +24,7 @@ cd figma-mcp-server
 ./setup.sh
 ```
 
-Optional: Set OpenAI API key for better semantic search
+Set OpenAI API key:
 ```bash
 export OPENAI_API_KEY="your-key-here"
 ```
@@ -92,8 +92,8 @@ figma-mcp-server/
 
 ## Search Features
 
-- Semantic search with OpenAI embeddings (when API key provided)
-- Keyword search fallback (works without API key)
+- Semantic search with OpenAI embeddings
+- Keyword search fallback
 - Automatic API symbol detection
 - Cross-references between official docs and community examples
 - Smart content previews with code highlighting
@@ -101,8 +101,8 @@ figma-mcp-server/
 ## Requirements
 
 - Python 3.8+
+- OpenAI API key
 - SQLite (included)
-- OpenAI API key (optional, improves search quality)
 
 ## License
 
