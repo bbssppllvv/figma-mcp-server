@@ -67,7 +67,11 @@ def log_raw(label: str, data: Any) -> None:
     pass
 
 # Глобальные переменные
-db_path = os.getenv("DB_PATH", "data/meta.db")
+# Auto-detect database path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+default_db_path = os.path.join(project_root, "meta.db")
+db_path = os.getenv("FIGMA_DB", os.getenv("DB_PATH", default_db_path))
 openai_client = None
 server = Server("figma-knowledge")
 

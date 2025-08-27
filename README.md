@@ -37,16 +37,23 @@ python -m src.mcp_server
 
 ## Usage with Cursor
 
-Copy `cursor-mcp-config.json` to your `.cursor/mcp.json` and update the paths:
+1. Copy `cursor-mcp-config.json` to your `.cursor/mcp.json`
+2. Replace `/absolute/path/to/figma-mcp-server` with your actual path
+3. Add your OpenAI API key
+
+**Important:** Use absolute paths and avoid spaces in directory names.
+
+Example configuration:
 ```json
 {
   "mcpServers": {
     "figma-docs": {
-      "command": "python",
+      "command": "/Users/yourname/figma-mcp-server/venv/bin/python",
       "args": ["-m", "src.mcp_server"],
-      "cwd": "/absolute/path/to/figma-mcp-server",
+      "cwd": "/Users/yourname/figma-mcp-server",
       "env": {
-        "OPENAI_API_KEY": "your-openai-api-key-here"
+        "OPENAI_API_KEY": "sk-your-actual-api-key-here",
+        "PYTHONPATH": "/Users/yourname/figma-mcp-server"
       }
     }
   }
@@ -109,6 +116,37 @@ figma-mcp-server/
 - Python 3.8+
 - OpenAI API key
 - SQLite (included)
+
+## Troubleshooting
+
+### Problem: "spawn EACCES" error in Cursor
+**Cause:** Path contains spaces or special characters
+**Solution:** Move the project to a path without spaces:
+```bash
+# If your path has spaces like "/Users/name/My Projects/figma-mcp-server"
+# Move it to "/Users/name/figma-mcp-server"
+mv "/Users/name/My Projects/figma-mcp-server" "/Users/name/figma-mcp-server"
+```
+
+### Problem: "Database connection failed"
+**Cause:** Incorrect database path configuration
+**Solution:** Use absolute paths in your Cursor MCP config:
+```json
+{
+  "command": "/absolute/path/to/figma-mcp-server/venv/bin/python",
+  "cwd": "/absolute/path/to/figma-mcp-server",
+  "env": {
+    "PYTHONPATH": "/absolute/path/to/figma-mcp-server"
+  }
+}
+```
+
+### Problem: OpenAI API key not working
+**Cause:** Invalid or missing API key
+**Solution:** 
+1. Get a new key from https://platform.openai.com/api-keys
+2. Make sure it starts with `sk-`
+3. Check your OpenAI account has credits
 
 ## License
 

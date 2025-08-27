@@ -1,11 +1,12 @@
 {
   "mcpServers": {
     "figma-docs": {
-      "command": "python",
+      "command": "/absolute/path/to/figma-mcp-server/venv/bin/python",
       "args": ["-m", "src.mcp_server"],
-      "cwd": "/path/to/figma-mcp-server",
+      "cwd": "/absolute/path/to/figma-mcp-server",
       "env": {
-        "OPENAI_API_KEY": "your-openai-api-key-here"
+        "OPENAI_API_KEY": "your-openai-api-key-here",
+        "PYTHONPATH": "/absolute/path/to/figma-mcp-server"
       }
     }
   }
