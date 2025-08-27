@@ -1,165 +1,109 @@
 # Figma Documentation MCP Server
 
-A production-ready MCP (Model Context Protocol) server for searching Figma Plugin API documentation with semantic search capabilities.
+MCP (Model Context Protocol) server that provides instant access to Figma Plugin API documentation and community code examples for LLM agents and developers.
 
-## ✨ Features
+## What This Is
 
-- **🔍 Semantic Search**: Natural language queries with OpenAI embeddings
-- **🎯 API Symbol Detection**: Automatic detection of Figma API methods
-- **🔗 Cross-linking**: Links between official docs and community examples  
-- **📖 Smart Expansion**: Auto-detect and expand pages or chunks
-- **⚡ Fast Fallback**: Keyword search when semantic search unavailable
-- **🎨 Rich Previews**: Context-aware content previews
+This server contains the complete Figma Plugin API documentation plus hundreds of real-world code examples from open source plugins, all searchable locally. It enables LLM agents to quickly find accurate API information and working code patterns without making mistakes or using outdated information.
 
-## 🚀 Quick Start
+## Why This Exists
 
-### Prerequisites
-- Python 3.8+
-- OpenAI API key (recommended for best search quality)
+Writing Figma plugins requires constant reference to documentation and working examples. This server provides:
 
-### Installation
+- Complete official Figma API documentation (Plugin API, Widget API, REST API)
+- 316 community plugin repositories with real code examples
+- All content indexed and searchable with semantic understanding
+- Instant local access without internet dependencies
+- MIT licensed code examples ready for use
 
-1. **Clone the repository**
+## Installation
+
 ```bash
-git clone <repository-url>
-cd figma-documentation-crawler
-```
-
-2. **Run setup script**
-```bash
-chmod +x setup.sh
+git clone https://github.com/bbssppllvv/figma-mcp-server.git
+cd figma-mcp-server
 ./setup.sh
 ```
 
-3. **Set OpenAI API key** (optional but recommended)
+Optional: Set OpenAI API key for better semantic search
 ```bash
-export OPENAI_API_KEY="your-api-key-here"
+export OPENAI_API_KEY="your-key-here"
 ```
 
-4. **Test the server**
-```bash
-python -m src.mcp_server
-```
+## Usage with Cursor
 
-### Cursor Integration
-
-Add to your Cursor MCP configuration (`.cursor/mcp.json`):
-
+Add to `.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
     "figma-docs": {
       "command": "python",
       "args": ["-m", "src.mcp_server"],
-      "cwd": "/path/to/figma-documentation-crawler",
+      "cwd": "/path/to/figma-mcp-server",
       "env": {
-        "OPENAI_API_KEY": "your-api-key-here"
+        "OPENAI_API_KEY": "your-key-here"
       }
     }
   }
 }
 ```
 
-## 📁 Project Structure
+## Available Tools
 
+### mcp_search
+Search documentation and code examples:
 ```
-figma-documentation-crawler/
-├── src/                          # Source code
-│   ├── mcp_server.py            # Main MCP server
-│   ├── search_engine.py         # Search functionality  
-│   ├── expand_engine.py         # Content expansion
-│   ├── cross_linker.py          # Cross-referencing
-│   ├── preview_generator.py     # Preview generation
-│   └── query_normalizer.py      # Query processing
-├── config/
-│   └── query_aliases.yaml       # Search aliases
-├── meta.db                      # SQLite database
-├── requirements.txt             # Dependencies
-├── setup.sh                     # Setup script
-└── mcp-start.sh                 # Launch script
-```
-
-## 🔧 MCP Tools
-
-The server provides these tools for Cursor:
-
-### `mcp_search`
-Unified smart search with semantic capabilities
-```python
-# Natural language queries
-"how to save user data in plugin"
-"export PNG from plugin"
-
-# API symbols  
 "figma.createRectangle"
-"ui.postMessage"
+"how to save plugin data"
+"ui.postMessage examples"
 ```
 
-### `mcp_expand` 
-Expand full content from search results
-```python
-# Auto-detects page vs chunk
-mcp_expand("page-id-or-chunk-id")
+### mcp_expand
+Get full content from search results:
+```
+mcp_expand("result-id")
 ```
 
-### `mcp_health`
-Check database status and search engine health
+### mcp_health
+Check database status and search capabilities
 
-## 📊 Database Content
+## Database Contents
 
-- **1,014 pages** total documentation
-- **892 official** Figma documentation pages
-- **316 community** plugin examples from GitHub
-- **1,841 chunks** of community content
-- **3,135 embeddings** for semantic search
+- 1,014 documentation pages
+- 892 official Figma API pages
+- 316 community plugin repositories
+- 1,841 code example chunks
+- 3,135 semantic search embeddings
 
-**Coverage includes:**
-- Plugin API, Widget API, REST API
-- Community plugins and examples
-- Code samples and tutorials
+## Project Structure
 
-## 🔍 Search Capabilities
+```
+figma-mcp-server/
+├── src/
+│   ├── mcp_server.py           # Main MCP server
+│   ├── search_engine.py        # Search with semantic/keyword fallback
+│   ├── expand_engine.py        # Content expansion
+│   ├── cross_linker.py         # Links between docs and examples
+│   └── preview_generator.py    # Smart content previews
+├── config/query_aliases.yaml   # Search term mappings
+├── meta.db                     # SQLite database (57MB)
+├── requirements.txt            # Python dependencies
+└── setup.sh                   # Installation script
+```
 
-### Semantic Search (with OpenAI API key)
-- Natural language understanding
-- Context-aware results
-- Cross-referencing between sections
+## Search Features
 
-### Keyword Search (fallback)
-- Fast text matching
-- API symbol detection
-- Regex pattern support
+- Semantic search with OpenAI embeddings (when API key provided)
+- Keyword search fallback (works without API key)
+- Automatic API symbol detection
+- Cross-references between official docs and community examples
+- Smart content previews with code highlighting
 
-### Smart Features
-- Auto-detection of API symbols
-- Cross-links between official docs and community examples
-- Confidence scoring and result ranking
-- Multiple search strategies with fallback
+## Requirements
 
-## ⚙️ Configuration
+- Python 3.8+
+- SQLite (included)
+- OpenAI API key (optional, improves search quality)
 
-### Environment Variables
-- `OPENAI_API_KEY`: For semantic search (optional)
-- `FIGMA_DB`: Database path (defaults to `./meta.db`)
+## License
 
-### Search Aliases
-Customize search behavior in `config/query_aliases.yaml`
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
-## 🙏 Acknowledgments
-
-- Figma team for comprehensive API documentation
-- MCP protocol by Anthropic
-- OpenAI for embedding models
-- Community plugin developers for examples
+MIT License. All community code examples maintain their original MIT licenses.
