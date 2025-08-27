@@ -1,0 +1,94 @@
+# Словарь синонимов для нормализации пользовательских запросов
+# Формат: "пользовательский запрос" -> "канонический термин"
+
+# Export-related queries
+export_aliases:
+  "export PNG": "ExportSettingsImage"
+  "export JPG": "ExportSettingsImage" 
+  "export JPEG": "ExportSettingsImage"
+  "export SVG": "ExportSettingsSVG"
+  "export PDF": "ExportSettingsPDF"
+  "PNG export": "ExportSettingsImage"
+  "JPG export": "ExportSettingsImage"
+  "SVG export": "ExportSettingsSVG"
+  "PDF export": "ExportSettingsPDF"
+  "image export": "ExportSettingsImage"
+  "export settings": "ExportSettings"
+  "export async": "exportAsync"
+  "export node": "exportAsync"
+
+# OAuth-related queries  
+oauth_aliases:
+  "OAuth flow": "oauth-with-plugins"
+  "OAuth login": "oauth-with-plugins"
+  "OAuth authentication": "oauth-with-plugins"
+  "user authentication": "oauth-with-plugins"
+  "login flow": "oauth-with-plugins"
+  "auth flow": "oauth-with-plugins"
+  "figma oauth": "oauth-with-plugins"
+  "oauth2 login": "oauth-with-plugins"
+  "initiate login": "oauth-with-plugins"
+  "current user": "oauth-with-plugins"
+
+# Variables-related queries
+variables_aliases:
+  "variables mode": "setValueForMode"
+  "variable mode": "setValueForMode"
+  "mode value": "setValueForMode"
+  "set variable": "setValueForMode"
+  "variable collection": "VariableCollection"
+  "create variable": "createVariable"
+
+# Events-related queries
+events_aliases:
+  "selection change": "selectionchange"
+  "selection changed": "selectionchange"
+  "document change": "documentchange"
+  "page change": "currentpagechange"
+  "figma events": "figma.on"
+  "event listener": "figma.on"
+  "listen to events": "figma.on"
+
+# Components/Variants queries
+components_aliases:
+  "variant properties": "variantProperties"
+  "variant props": "variantProperties"
+  "component set": "createComponentSet"
+  "create variant": "createComponentSet"
+  "main component": "mainComponent"
+  "component variants": "ComponentSetNode"
+
+# UI-related queries
+ui_aliases:
+  "post message": "figma.ui.postMessage"
+  "ui message": "figma.ui.postMessage"
+  "send message": "figma.ui.postMessage"
+  "plugin ui": "figma.ui"
+  "show ui": "figma.showUI"
+
+# Storage-related queries
+storage_aliases:
+  "client storage": "figma.clientStorage"
+  "local storage": "figma.clientStorage"
+  "store data": "figma.clientStorage"
+  "save data": "figma.clientStorage.setAsync"
+  "get data": "figma.clientStorage.getAsync"
+
+# Node manipulation
+nodes_aliases:
+  "create rectangle": "createRectangle"
+  "create circle": "createEllipse"
+  "create text": "createText"
+  "create frame": "createFrame"
+  "add child": "appendChild"
+  "remove node": "remove"
+  "clone node": "clone"
+
+# Common API patterns
+api_aliases:
+  "figma api": "figma"
+  "plugin api": "figma"
+  "node properties": "BaseNode"
+  "node types": "SceneNode"
+  "find nodes": "findAll"
+  "search nodes": "findAll"

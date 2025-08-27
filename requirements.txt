@@ -1,0 +1,14 @@
+# MCP Protocol
+mcp>=1.13.0
+
+# Data validation and parsing
+pydantic>=2.5.0,<3.0.0
+
+# Numerical computing for embeddings
+numpy>=1.24.0,<2.0.0
+
+# OpenAI API client
+openai>=1.0.0,<2.0.0
+
+# YAML configuration parsing
+pyyaml>=6.0,<7.0.0
